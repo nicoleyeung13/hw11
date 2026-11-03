@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bao & Bowl | Asian Food Delivery & Street Eats</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  <!-- p5.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+
+<body>
+
+  <!-- Top Announcement Bar -->
+  <div class="announcement-bar">
+    <span>🥢 Lunar Flavors Fest: Use code <strong class="promo-pill"
+        onclick="applyPromoCodeDirect('ASIANFEAST')">ASIANFEAST</strong> for 20% off all orders over $25! Free delivery
+      over $35 🚀</span>
+  </div>
+
+  <!-- Main Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand-logo" onclick="showView('restaurants')">
+        <span class="logo-icon">🍜</span>
+        <div class="logo-text">
+          <span class="brand-name">Bao & Bowl<span class="brand-dot">.</span></span>
+          <span class="brand-tagline">Asian Street Eats & Delivery</span>
+        </div>
+      </div>
+
+      <!-- Quick Delivery Address -->
+      <div class="nav-address" onclick="openAddressModal()">
+        <span class="address-icon">📍</span>
+        <div class="address-meta">
+          <span class="address-label">Delivering to:</span>
+          <span class="address-val" id="navAddressDisplay">742 Evergreen Terrace, Apt 4B</span>
+        </div>
+        <span class="dropdown-arrow">▾</span>
+      </div>
+
+      <!-- Search Input -->
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="foodSearchInput" placeholder="Search ramen, boba, wings, dim sum..."
+          oninput="handleSearch(this.value)">
+        <button class="search-clear" id="searchClearBtn" onclick="clearSearch()" style="display:none;">✕</button>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="nav-actions">
+        <button class="nav-btn interactive-toggle-btn" id="canvasModeBtn" onclick="toggleCanvasFeature()">
+          <span class="btn-icon">🎨</span>
+          <span class="btn-text">Mini City</span>
+        </button>
+
+        <button class="cart-trigger-btn" id="cartBtn" onclick="toggleCartDrawer()">
+          <span class="cart-icon">🛍️</span>
+          <span class="cart-badge" id="cartCountBadge">0</span>
+          <span class="cart-total-pill" id="cartNavTotal">$0.00</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive p5.js Hero / Showcase Banner -->
+  <section class="canvas-hero-section" id="canvasHeroSection">
+    <div class="canvas-header-bar">
+      <div class="canvas-title-group">
+        <div class="pulse-dot"></div>
+        <span class="canvas-title" id="canvasTitleText">Tokyo & Seoul Night Market • Live Interactive Scene</span>
+      </div>
+      <div class="canvas-controls">
+        <span class="canvas-hint" id="canvasHintText">💡 Click street lanterns or food stalls to interact!</span>
+        <button class="canvas-action-btn" onclick="triggerCanvasSpecial()">✨ Street Fireworks</button>
+      </div>
+    </div>
+    <div id="p5-canvas-container" class="canvas-box">
+      <!-- p5.js injects canvas here -->
+    </div>
+  </section>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+
+    <!-- Category Filter Chips -->
+    <section class="categories-bar">
+      <div class="categories-scroll" id="categoryChips">
+        <button class="cat-chip active" data-cat="all" onclick="filterCategory('all')">
+          <span class="chip-icon">🏮</span> All Cravings
+        </button>
+        <button class="cat-chip" data-cat="japanese" onclick="filterCategory('japanese')">
+          <span class="chip-icon">🍜</span> Japanese Ramen & Sushi
+        </button>
+        <button class="cat-chip" data-cat="korean" onclick="filterCategory('korean')">
+          <span class="chip-icon">🍗</span> Korean Fried Chicken & BBQ
+        </button>
+        <button class="cat-chip" data-cat="chinese" onclick="filterCategory('chinese')">
+          <span class="chip-icon">🥟</span> Dim Sum & Wok Fast Food
+        </button>
+        <button class="cat-chip" data-cat="vietnamese" onclick="filterCategory('vietnamese')">
+          <span class="chip-icon">🥖</span> Pho & Banh Mi
+        </button>
+        <button class="cat-chip" data-cat="thai" onclick="filterCategory('thai')">
+          <span class="chip-icon">🍛</span> Thai Curries & Noodles
+        </button>
+        <button class="cat-chip" data-cat="boba" onclick="filterCategory('boba')">
+          <span class="chip-icon">🧋</span> Boba & Street Desserts
+        </button>
+      </div>
+    </section>
+
+    <!-- VIEW 1: Restaurant Listings View -->
+    <div id="restaurantsView" class="view-panel active">
+      <div class="section-title-wrap">
+        <div>
+          <h1 class="section-heading">Featured Asian Restaurants & Street Food</h1>
+          <p class="section-subheading">Hand-crafted artisan dishes, sizzling woks, and fast food comfort delivered in
+            25–40 mins.</p>
+        </div>
+        <div class="sort-selector">
+          <label for="sortRestaurants">Sort by:</label>
+          <select id="sortRestaurants" onchange="sortRestaurants(this.value)">
+            <option value="featured">Featured & Best Matches</option>
+            <option value="rating">Highest Rated (★ 4.8+)</option>
+            <option value="deliveryTime">Fastest Delivery (under 30m)</option>
+            <option value="priceLow">Delivery Fee: Low to High</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Restaurant Cards Grid -->
+      <div class="restaurant-grid" id="restaurantGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- VIEW 2: Single Restaurant Menu View -->
+    <div id="menuView" class="view-panel">
+      <!-- Back button and Breadcrumb -->
+      <div class="menu-nav-back">
+        <button class="back-link-btn" onclick="showView('restaurants')">
+          ← Back to All Restaurants
+        </button>
+      </div>
+
+      <!-- Restaurant Hero Banner -->
+      <div class="restaurant-detail-header" id="restaurantDetailHeader">
+        <!-- Dynamic header content -->
+      </div>
+
+      <!-- Menu Category Tabs & Items -->
+      <div class="menu-content-layout">
+        <aside class="menu-subnav" id="menuSubnav">
+          <!-- Quick section jump links -->
+        </aside>
+        <div class="menu-items-container" id="menuItemsContainer">
+          <!-- Rendered categorized items -->
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: Fake Checkout Screen -->
+    <div id="checkoutView" class="view-panel">
+      <div class="checkout-header">
+        <button class="back-link-btn" onclick="showView('restaurants')">← Continue Shopping</button>
+        <h1 class="checkout-title">🥢 Checkout & Order Placement</h1>
+        <p class="checkout-subtitle">Review your feast, select payment method, and watch live kitchen & courier
+          tracking.</p>
+      </div>
+
+      <div class="checkout-grid">
+        <!-- Checkout Left Column: Form Details -->
+        <div class="checkout-form-column">
+          <!-- Step 1: Delivery Address -->
+          <div class="checkout-card">
+            <div class="card-step-badge">1</div>
+            <div class="card-step-body">
+              <h3 class="card-step-title">Delivery Address & Instructions</h3>
+              <div class="form-row dual-fields">
+                <div class="form-group">
+                  <label for="checkoutName">Full Name *</label>
+                  <input type="text" id="checkoutName" value="Alex Chen" placeholder="e.g. Alex Chen">
+                </div>
+                <div class="form-group">
+                  <label for="checkoutPhone">Phone Number *</label>
+                  <input type="tel" id="checkoutPhone" value="(555) 234-5678" placeholder="(555) 000-0000">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="checkoutStreet">Street Address *</label>
+                <input type="text" id="checkoutStreet" value="742 Evergreen Terrace" placeholder="123 Sakura Way">
+              </div>
+              <div class="form-row dual-fields">
+                <div class="form-group">
+                  <label for="checkoutApt">Apt / Suite / Floor (Optional)</label>
+                  <input type="text" id="checkoutApt" value="Apt 4B" placeholder="Apt 4B">
+                </div>
+                <div class="form-group">
+                  <label for="checkoutDropoff">Drop-off Preference</label>
+                  <select id="checkoutDropoff">
+                    <option value="door">Leave at my door</option>
+                    <option value="hand">Hand it directly to me</option>
+                    <option value="lobby">Leave with lobby front desk</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="checkoutNotes">Delivery Note / Gate Code</label>
+                <input type="text" id="checkoutNotes" placeholder="Ring bell #4, please include extra spicy sauce!">
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Payment Method -->
+          <div class="checkout-card">
+            <div class="card-step-badge">2</div>
+            <div class="card-step-body">
+              <h3 class="card-step-title">Payment Method (Fake Checkout)</h3>
+
+              <div class="payment-tabs">
+                <label class="pay-tab active">
+                  <input type="radio" name="payMethod" value="card" checked onchange="handlePaymentChange('card')">
+                  <span class="pay-label">💳 Credit Card</span>
+                </label>
+                <label class="pay-tab">
+                  <input type="radio" name="payMethod" value="applepay" onchange="handlePaymentChange('applepay')">
+                  <span class="pay-label">🍏 Apple / G-Pay</span>
+                </label>
+                <label class="pay-tab">
+                  <input type="radio" name="payMethod" value="cash" onchange="handlePaymentChange('cash')">
+                  <span class="pay-label">💵 Cash on Delivery</span>
+                </label>
+              </div>
+
+              <!-- Card form inputs -->
+              <div id="cardInputs" class="card-input-box">
+                <div class="form-group">
+                  <label for="cardNumber">Card Number</label>
+                  <div class="card-input-with-icon">
+                    <input type="text" id="cardNumber" maxlength="19" value="4532 •••• •••• 8821"
+                      placeholder="4242 4242 4242 4242">
+                    <span class="card-brand-tag">VISA</span>
+                  </div>
+                </div>
+                <div class="form-row dual-fields">
+                  <div class="form-group">
+                    <label for="cardExp">Expiration</label>
+                    <input type="text" id="cardExp" maxlength="5" value="08/28" placeholder="MM/YY">
+                  </div>
+                  <div class="form-group">
+                    <label for="cardCvc">CVV</label>
+                    <input type="password" id="cardCvc" maxlength="4" value="888" placeholder="123">
+                  </div>
+                </div>
+                <p class="fake-security-notice">🔒 256-Bit SSL Demo Sandbox. No real credit card charge occurs.</p>
+              </div>
+
+              <div id="digitalWalletNotice" class="wallet-notice" style="display: none;">
+                <p>⚡ Express 1-click authorization simulated via Apple Pay / Google Wallet sandbox.</p>
+              </div>
+
+              <div id="cashNotice" class="wallet-notice" style="display: none;">
+                <p>💵 Pay with cash upon delivery. Our driver will carry up to $20 in change.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Courier Tip -->
+          <div class="checkout-card">
+            <div class="card-step-badge">3</div>
+            <div class="card-step-body">
+              <h3 class="card-step-title">Courier Gratuity</h3>
+              <p class="tip-sub">100% of the tip goes directly to your scooter driver.</p>
+              <div class="tip-selector">
+                <button type="button" class="tip-btn" data-tip="10" onclick="setTipPercent(10)">10%</button>
+                <button type="button" class="tip-btn active" data-tip="15" onclick="setTipPercent(15)">15%</button>
+                <button type="button" class="tip-btn" data-tip="20" onclick="setTipPercent(20)">20%</button>
+                <button type="button" class="tip-btn" data-tip="25" onclick="setTipPercent(25)">25%</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Checkout Right Column: Order Summary & Place Button -->
+        <div class="checkout-summary-column">
+          <div class="order-summary-box">
+            <h3 class="summary-header">Order Summary</h3>
+            <div class="summary-items-list" id="checkoutItemsList">
+              <!-- Rendered items -->
+            </div>
+
+            <!-- Promo Code Row -->
+            <div class="promo-box">
+              <div class="promo-input-wrap">
+                <input type="text" id="promoInput" placeholder="Promo code (try ASIANFEAST)">
+                <button type="button" class="promo-apply-btn" onclick="applyPromoCode()">Apply</button>
+              </div>
+              <div id="promoFeedback" class="promo-feedback"></div>
+            </div>
+
+            <!-- Cost breakdown -->
+            <div class="summary-breakdown">
+              <div class="breakdown-row">
+                <span>Subtotal</span>
+                <span id="coSubtotal">$0.00</span>
+              </div>
+              <div class="breakdown-row" id="coDiscountRow" style="display:none; color: #10b981;">
+                <span>Discount (<span id="coDiscountLabel">20% off</span>)</span>
+                <span id="coDiscount">-$0.00</span>
+              </div>
+              <div class="breakdown-row">
+                <span>Estimated Taxes (8.5%)</span>
+                <span id="coTax">$0.00</span>
+              </div>
+              <div class="breakdown-row">
+                <span>Delivery Fee</span>
+                <span id="coDelivery">$2.99</span>
+              </div>
+              <div class="breakdown-row">
+                <span>Courier Tip</span>
+                <span id="coTip">$0.00</span>
+              </div>
+              <div class="breakdown-total">
+                <span>Total Due</span>
+                <span id="coGrandTotal" class="grand-price">$0.00</span>
+              </div>
+            </div>
+
+            <!-- Place Order Action -->
+            <button class="place-order-btn" id="placeOrderBtn" onclick="placeOrder()">
+              <span class="btn-lock-icon">🔒</span>
+              <span>Confirm & Place Order</span>
+              <span class="btn-arrow">→</span>
+            </button>
+            <p class="money-back-badge">✨ 100% On-Time & Fresh Guarantee</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: Live Order Tracking & Confirmation View -->
+    <div id="trackingView" class="view-panel">
+      <div class="tracking-container">
+        <!-- Order Header banner -->
+        <div class="tracking-header">
+          <div class="tracking-badge-row">
+            <span class="status-live-pill"><span class="live-pulse"></span> IN PROGRESS</span>
+            <span class="order-id-display" id="trackOrderId">Order #AB-9284</span>
+          </div>
+          <h1 class="tracking-title">Sizzling & On The Way! 🛵💨</h1>
+          <p class="tracking-eta-text">Estimated delivery time: <strong id="trackEtaDisplay">24 - 32 minutes</strong>
+          </p>
+        </div>
+
+        <!-- Live Stages Progress Bar -->
+        <div class="order-progress-stepper">
+          <div class="step-node active" id="stepNode1">
+            <div class="node-circle">✓</div>
+            <span class="node-label">Order Received</span>
+            <span class="node-time" id="stepTime1">Just now</span>
+          </div>
+          <div class="step-line active" id="stepLine1"></div>
+          <div class="step-node active" id="stepNode2">
+            <div class="node-circle">🍳</div>
+            <span class="node-label">Wok Firing & Packing</span>
+            <span class="node-time">In Kitchen</span>
+          </div>
+          <div class="step-line" id="stepLine2"></div>
+          <div class="step-node" id="stepNode3">
+            <div class="node-circle">🛵</div>
+            <span class="node-label">Courier En Route</span>
+            <span class="node-time">Approaching</span>
+          </div>
+          <div class="step-line" id="stepLine3"></div>
+          <div class="step-node" id="stepNode4">
+            <div class="node-circle">🥢</div>
+            <span class="node-label">Delivered</span>
+            <span class="node-time">Enjoy!</span>
+          </div>
+        </div>
+
+        <!-- Live Simulation Canvas Controls & Audio Fun -->
+        <div class="tracking-simulation-card">
+          <div class="tracking-controls-bar">
+            <div class="driver-profile">
+              <div class="driver-avatar">🛵</div>
+              <div class="driver-info">
+                <span class="driver-name" id="trackDriverName">Kenji Sato</span>
+                <span class="driver-sub" id="trackDriverVehicle">Electric Honda Super Cub • 4.97 ★ (2,410
+                  deliveries)</span>
+              </div>
+            </div>
+            <div class="sim-actions">
+              <button class="sim-btn" onclick="honkScooterHorn()">📢 Honk Scooter Horn</button>
+              <button class="sim-btn" onclick="triggerConfettiBurst()">🎉 Celebrate</button>
+              <button class="sim-btn secondary" onclick="fastForwardDelivery()">⚡ Speed Up Simulation</button>
+            </div>
+          </div>
+
+          <!-- Canvas is linked to sketch.js interactive delivery tracker -->
+          <div class="tracking-map-hint">
+            <span>🗺️ Live interactive canvas map: Scroll or click anywhere on the canvas road to drop cheers &
+              stars!</span>
+          </div>
+        </div>
+
+        <!-- Order Receipt Details -->
+        <div class="tracking-receipt-grid">
+          <div class="receipt-box">
+            <h3>Destination Details</h3>
+            <p><strong>Deliver to:</strong> <span id="trackCustomerName">Alex Chen</span></p>
+            <p><strong>Address:</strong> <span id="trackCustomerAddress">742 Evergreen Terrace, Apt 4B</span></p>
+            <p><strong>Instructions:</strong> <span id="trackCustomerNote">Leave at door</span></p>
+          </div>
+          <div class="receipt-box">
+            <h3>Receipt & Payment</h3>
+            <p><strong>Restaurant:</strong> <span id="trackRestaurantName">Tokyo Ramen & Izakaya</span></p>
+            <p><strong>Payment Method:</strong> <span id="trackPayMethod">Credit Card (••8821)</span></p>
+            <p><strong>Total Paid:</strong> <strong id="trackPaidTotal" style="color: #e11d48;">$0.00</strong></p>
+          </div>
+        </div>
+
+        <div class="tracking-actions-footer">
+          <button class="new-order-btn" onclick="resetToNewOrder()">
+            🥢 Place Another Craving
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Slide-out Shopping Cart Drawer -->
+  <div class="cart-backdrop" id="cartBackdrop" onclick="toggleCartDrawer()"></div>
+  <aside class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <div class="cart-header-title">
+        <span class="cart-drawer-icon">🛍️</span>
+        <h2>Your Food Bag</h2>
+      </div>
+      <button class="cart-close-btn" onclick="toggleCartDrawer()">✕</button>
+    </div>
+
+    <div class="cart-restaurant-tag" id="cartRestaurantTag" style="display: none;">
+      <span>Ordering from: <strong id="cartRestaurantName">Tokyo Noodle Bar</strong></span>
+    </div>
+
+    <!-- Free Delivery Progress Bar -->
+    <div class="free-delivery-tracker">
+      <div class="progress-message" id="freeDeliveryMsg">Add $12.50 more for <strong>FREE Delivery!</strong></div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="freeDeliveryFill" style="width: 40%;"></div>
+      </div>
+    </div>
+
+    <!-- Cart Item List -->
+    <div class="cart-body" id="cartBody">
+      <!-- Empty state or list -->
+    </div>
+
+    <!-- Cart Footer with Checkout Button -->
+    <div class="cart-footer" id="cartFooter">
+      <div class="cart-subtotal-row">
+        <span>Estimated Subtotal</span>
+        <span id="cartDrawerSubtotal" class="cart-subtotal-amt">$0.00</span>
+      </div>
+      <p class="cart-tax-notice">Taxes, delivery, and promo codes calculated at checkout.</p>
+      <button class="checkout-drawer-btn" id="cartCheckoutBtn" onclick="goToCheckout()">
+        <span>Proceed to Checkout</span>
+        <span id="cartCheckoutTotal">$0.00</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Quick Address Edit Modal -->
+  <div class="address-modal-overlay" id="addressModalOverlay" onclick="closeAddressModal(event)">
+    <div class="address-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📍 Change Delivery Address</h3>
+        <button class="close-modal-btn" onclick="closeAddressModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="addressInputModal">Enter Delivery Address</label>
+          <input type="text" id="addressInputModal" value="742 Evergreen Terrace, Apt 4B">
+        </div>
+        <div class="saved-addresses">
+          <span class="quick-chip" onclick="setQuickAddress('742 Evergreen Terrace, Apt 4B')">🏠 Home (Apt 4B)</span>
+          <span class="quick-chip" onclick="setQuickAddress('450 Mission St, 18th Floor')">💼 Work / Office</span>
+          <span class="quick-chip" onclick="setQuickAddress('Stanford Campus, Dorm #12')">🎓 Campus Dorm</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="primary-btn" onclick="saveAddressFromModal()">Save & Update</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application Logic & Data -->
+  <script src="sketch.js"></script>
+</body>
+
+</html>
